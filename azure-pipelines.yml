@@ -1,0 +1,47 @@
+trigger:
+  - master
+
+variables:
+  # Azure Resource Manager connection created during pipeline creation
+  # Needs to be the service connection name from within DevOps
+  azureServiceConnectionDevl: "MyTestServiceConnection"
+
+  # Agent VM image name
+  vmImageName: "ubuntu-latest"
+
+  # Azure Subscription GUID
+  azureSubscriptionPrDevl: "5af650ca-666a-4d85-b1b5-fcfa943617e1"
+
+  # Resource Group name
+  resourceGroupNameDevl: "AzureDevRG"
+
+  # Path to ARM template file
+  csmFilePath: "azuredeploy.json"
+
+  # Path to ARM template parameters file
+  csmParametersFilePathDevl: "azuredeploy.parameters.json"
+
+  # Region to deploy to
+  region: "Central US"
+
+stages:
+  - stage: Provision_Storage_Account
+    displayName: Provision Storage Account
+    jobs:
+      - job: Provision_Storage_Account
+        displayName: Provision Storage Account
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: AzureResourceManagerTemplateDeployment@3
+            inputs:
+              deploymentScope: "Resource Group"
+              azureResourceManagerConnection: $(azureServiceConnectionDevl)
+              subscriptionId: $(azureSubscriptionPrDevl)
+              action: "Create Or Update Resource Group"
+              resourceGroupName: $(resourceGroupNameDevl)
+              location: $(region)
+              templateLocation: "Linked artifact"
+              csmFile: "$(csmFilePath)"
+              csmParametersFile: "$(csmParametersFilePathDevl)"
+              deploymentMode: "Incremental"
